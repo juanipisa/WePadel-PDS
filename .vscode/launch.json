@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "WePadel Main",
+            "request": "launch",
+            "mainClass": "com.uade.tpo.wepadel.Main",
+            "classPaths": [
+                "${workspaceFolder}/target/classes"
+            ],
+            "modulePaths": [],
+            "preLaunchTask": "compile-wePadel"
+        }
+    ]
+}
