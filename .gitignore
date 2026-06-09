@@ -4,3 +4,6 @@ target/
 *.iml
 .vscode/sources.txt
 .DS_Store
+data/
+*.mv.db
+.env
