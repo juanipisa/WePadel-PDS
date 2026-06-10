@@ -6,6 +6,9 @@ import java.util.List;
 /** Patron COMPOSITE: categoria contiene subcategorias y productos en un mismo arbol. */
 public class Categoria implements ComponenteCatalogo {
 
+    /** Nombre de la raiz virtual en memoria (no persistida en BD). */
+    public static final String NOMBRE_RAIZ_VIRTUAL = "__CATALOGO__";
+
     private String nombre;
     private final List<ComponenteCatalogo> hijos = new ArrayList<>();
 

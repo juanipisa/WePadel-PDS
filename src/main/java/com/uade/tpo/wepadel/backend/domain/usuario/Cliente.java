@@ -138,24 +138,28 @@ public class Cliente extends Usuario {
     }
 
     public void cancelarPedido(Pedido pedido) {
-        if (!historialPedidos.contains(pedido)) {
+        Pedido pedidoEnHistorial = historialPedidos.stream()
+                .filter(p -> p.getId().equals(pedido.getId()))
+                .findFirst()
+                .orElse(null);
+        if (pedidoEnHistorial == null) {
             throw new IllegalArgumentException("El pedido no pertenece a este cliente");
         }
-        if (!pedido.puedeCancelarse()) {
+        if (!pedidoEnHistorial.puedeCancelarse()) {
             throw new IllegalStateException("El pedido no puede cancelarse en su estado actual");
         }
 
-        pedido.cancelar();
+        pedidoEnHistorial.cancelar();
 
-        for (ItemPedido item : pedido.getItems()) {
+        for (ItemPedido item : pedidoEnHistorial.getItems()) {
             item.getProducto().reponerStock(item.getCantidad());
         }
 
-        if (pedido.isUsaPuntos()) {
-            sistemaPuntos.sumarPuntos(pedido.getPuntosUsados());
+        if (pedidoEnHistorial.isUsaPuntos()) {
+            sistemaPuntos.sumarPuntos(pedidoEnHistorial.getPuntosUsados());
         }
-        if (pedido.getPuntosGenerados() > 0) {
-            sistemaPuntos.restarPuntos(pedido.getPuntosGenerados());
+        if (pedidoEnHistorial.getPuntosGenerados() > 0) {
+            sistemaPuntos.restarPuntos(pedidoEnHistorial.getPuntosGenerados());
         }
     }
 
@@ -173,6 +177,11 @@ public class Cliente extends Usuario {
 
     public List<Pedido> getHistorialPedidos() {
         return List.copyOf(historialPedidos);
+    }
+
+    public void cargarHistorialPedidos(List<Pedido> pedidos) {
+        historialPedidos.clear();
+        historialPedidos.addAll(pedidos);
     }
 
     public Notificador getPreferenciaNotificacion() {

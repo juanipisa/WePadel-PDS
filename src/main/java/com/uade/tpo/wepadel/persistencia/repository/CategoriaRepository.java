@@ -13,5 +13,9 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
     Optional<Categoria> findByParentIsNull();
 
+    List<Categoria> findAllByParentIsNullOrderByNombreAsc();
+
     List<Categoria> findByParentId(Long parentId);
+
+    Optional<Categoria> findByNombreAndParentIsNull(String nombre);
 }

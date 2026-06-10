@@ -1,5 +1,7 @@
 package com.uade.tpo.wepadel.persistencia.service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -37,12 +39,14 @@ public class CatalogoService {
         categoriaIds.clear();
         productosPorId.clear();
 
-        catalogoRaiz = new Categoria("WePadel");
-        categoriaRepository.findByParentIsNull().ifPresent(raizEntity -> {
-            catalogoRaiz = new Categoria(raizEntity.getNombre());
-            categoriaIds.put(catalogoRaiz, raizEntity.getId());
-            construirHijos(raizEntity.getId(), catalogoRaiz);
-        });
+        catalogoRaiz = new Categoria(Categoria.NOMBRE_RAIZ_VIRTUAL);
+        for (com.uade.tpo.wepadel.persistencia.entity.Categoria raizEntity
+                : categoriaRepository.findAllByParentIsNullOrderByNombreAsc()) {
+            Categoria raizDomain = new Categoria(raizEntity.getNombre());
+            catalogoRaiz.agregar(raizDomain);
+            categoriaIds.put(raizDomain, raizEntity.getId());
+            construirHijos(raizEntity.getId(), raizDomain);
+        }
 
         for (com.uade.tpo.wepadel.persistencia.entity.Producto productoEntity : productoRepository.findAll()) {
             Categoria categoriaDomain = buscarCategoriaDomain(productoEntity.getCategoria().getId());
@@ -73,10 +77,14 @@ public class CatalogoService {
 
     @Transactional
     public Categoria crearCategoria(String nombre, Categoria padreDomain) {
+        if (padreDomain == null || Categoria.NOMBRE_RAIZ_VIRTUAL.equals(padreDomain.getNombre())) {
+            throw new IllegalArgumentException("Seleccione una categoria padre valida (no el nodo raiz del arbol)");
+        }
         Long parentId = categoriaIds.get(padreDomain);
-        com.uade.tpo.wepadel.persistencia.entity.Categoria parentEntity = parentId == null
-                ? null
-                : categoriaRepository.getReferenceById(parentId);
+        if (parentId == null) {
+            throw new IllegalArgumentException("La categoria padre no esta registrada en el catalogo");
+        }
+        com.uade.tpo.wepadel.persistencia.entity.Categoria parentEntity = categoriaRepository.getReferenceById(parentId);
 
         com.uade.tpo.wepadel.persistencia.entity.Categoria categoriaEntity =
                 categoriaRepository.save(new com.uade.tpo.wepadel.persistencia.entity.Categoria(nombre, parentEntity));
@@ -103,10 +111,8 @@ public class CatalogoService {
                 datos.material()
         );
         paletaEntity = (com.uade.tpo.wepadel.persistencia.entity.Paleta) productoRepository.save(paletaEntity);
-        Producto productoDomain = domainMapper.toDomainProducto(paletaEntity, datos.categoria());
-        datos.categoria().agregar(productoDomain);
-        productosPorId.put(paletaEntity.getId(), productoDomain);
-        return productoDomain;
+        construirCatalogo();
+        return productosPorId.get(paletaEntity.getId());
     }
 
     @Transactional
@@ -123,10 +129,8 @@ public class CatalogoService {
                 datos.unidadesPorTubo()
         );
         pelotaEntity = (com.uade.tpo.wepadel.persistencia.entity.Pelota) productoRepository.save(pelotaEntity);
-        Producto productoDomain = domainMapper.toDomainProducto(pelotaEntity, datos.categoria());
-        datos.categoria().agregar(productoDomain);
-        productosPorId.put(pelotaEntity.getId(), productoDomain);
-        return productoDomain;
+        construirCatalogo();
+        return productosPorId.get(pelotaEntity.getId());
     }
 
     @Transactional
@@ -143,10 +147,8 @@ public class CatalogoService {
                 datos.material()
         );
         accesorioEntity = (com.uade.tpo.wepadel.persistencia.entity.Accesorio) productoRepository.save(accesorioEntity);
-        Producto productoDomain = domainMapper.toDomainProducto(accesorioEntity, datos.categoria());
-        datos.categoria().agregar(productoDomain);
-        productosPorId.put(accesorioEntity.getId(), productoDomain);
-        return productoDomain;
+        construirCatalogo();
+        return productosPorId.get(accesorioEntity.getId());
     }
 
     @Transactional
@@ -164,17 +166,15 @@ public class CatalogoService {
                 datos.genero()
         );
         calzadoEntity = (com.uade.tpo.wepadel.persistencia.entity.Calzado) productoRepository.save(calzadoEntity);
-        Producto productoDomain = domainMapper.toDomainProducto(calzadoEntity, datos.categoria());
-        datos.categoria().agregar(productoDomain);
-        productosPorId.put(calzadoEntity.getId(), productoDomain);
-        return productoDomain;
+        construirCatalogo();
+        return productosPorId.get(calzadoEntity.getId());
     }
 
     public List<Producto> buscarProductos(String filtro) {
-        if (catalogoRaiz == null) {
+        if (productosPorId.isEmpty()) {
             construirCatalogo();
         }
-        List<Producto> todos = catalogoRaiz.getProductos();
+        List<Producto> todos = new ArrayList<>(productosPorId.values());
         if (filtro == null || filtro.isBlank()) {
             return todos;
         }
@@ -198,5 +198,18 @@ public class CatalogoService {
             construirCatalogo();
         }
         return catalogoRaiz;
+    }
+
+    @Transactional(readOnly = true)
+    public Categoria reconstruirCatalogo() {
+        return construirCatalogo();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> listarTodosLosProductos() {
+        construirCatalogo();
+        return productosPorId.values().stream()
+                .sorted(Comparator.comparing(Producto::getId))
+                .toList();
     }
 }

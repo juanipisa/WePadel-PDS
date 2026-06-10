@@ -22,6 +22,14 @@ public class ProductoService {
         productoRepository.save(productoEntity);
     }
 
+    @Transactional
+    public void sincronizarHabilitado(Producto productoDomain) {
+        com.uade.tpo.wepadel.persistencia.entity.Producto productoEntity = productoRepository.findById(productoDomain.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoDomain.getId()));
+        productoEntity.setHabilitado(productoDomain.isHabilitado());
+        productoRepository.save(productoEntity);
+    }
+
     @Transactional(readOnly = true)
     public long siguienteIdProducto() {
         return productoRepository.findAll().stream()
