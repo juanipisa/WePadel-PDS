@@ -25,6 +25,7 @@ public class UsuarioService {
     private final CarritoService carritoService;
     private final PuntosService puntosService;
     private final IdGeneratorService idGeneratorService;
+    private final PedidoService pedidoService;
 
     @Transactional
     public Usuario registrarUsuario(String nombreApellido, String mail, String password, RolEnum rol) {
@@ -67,6 +68,17 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
+    public Cliente obtenerCliente(Long clienteId) {
+        com.uade.tpo.wepadel.persistencia.entity.Usuario usuarioEntity = usuarioRepository.findById(clienteId)
+                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado: " + clienteId));
+        Usuario usuario = construirUsuarioCompleto(usuarioEntity);
+        if (!(usuario instanceof Cliente cliente)) {
+            throw new IllegalArgumentException("El usuario no es cliente: " + clienteId);
+        }
+        return (Cliente) usuario;
+    }
+
+    @Transactional(readOnly = true)
     public Administrador obtenerAdministrador() {
         com.uade.tpo.wepadel.persistencia.entity.Usuario adminEntity = usuarioRepository.findFirstByRol(
                         com.uade.tpo.wepadel.persistencia.entity.RolEnum.ADMINISTRADOR)
@@ -96,6 +108,7 @@ public class UsuarioService {
             cliente.setGeneradorIdPedido(idGeneratorService::siguienteIdPedido);
             puntosService.cargarPuntosEnCliente(cliente);
             carritoService.cargarCarritoEnCliente(cliente);
+            pedidoService.cargarHistorialEnCliente(cliente);
             if (usuarioEntity.getCanalNotificacion() != null) {
                 cliente.setPreferenciaNotificacion(
                         domainMapper.toNotificador(usuarioEntity.getCanalNotificacion(), cliente));

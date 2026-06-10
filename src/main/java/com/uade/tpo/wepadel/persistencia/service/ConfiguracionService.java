@@ -1,5 +1,7 @@
 package com.uade.tpo.wepadel.persistencia.service;
 
+import java.math.BigDecimal;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,5 +30,24 @@ public class ConfiguracionService {
     public ConfiguracionSistema getConfiguracion() {
         sincronizarDominio();
         return ConfiguracionSistema.getInstancia();
+    }
+
+    @Transactional
+    public void guardarConfiguracion(BigDecimal costoEnvio, int conversionPuntos, BigDecimal pesosPorPuntoGenerado,
+                                     String canalNotificacionDefault) {
+        ConfiguracionSistema config = ConfiguracionSistema.getInstancia();
+        config.setCostoEnvio(costoEnvio);
+        config.setConversionPuntos(conversionPuntos);
+        config.setPesosPorPuntoGenerado(pesosPorPuntoGenerado);
+        config.setCanalNotificacionDefault(canalNotificacionDefault);
+
+        com.uade.tpo.wepadel.persistencia.entity.ConfiguracionSistema entity =
+                configuracionSistemaRepository.findFirstByOrderByIdAsc()
+                        .orElseGet(com.uade.tpo.wepadel.persistencia.entity.ConfiguracionSistema::new);
+        entity.setCostoEnvio(costoEnvio);
+        entity.setConversionPuntos(conversionPuntos);
+        entity.setPesosPorPuntoGenerado(pesosPorPuntoGenerado);
+        entity.setCanalNotificacionDefault(canalNotificacionDefault);
+        configuracionSistemaRepository.save(entity);
     }
 }

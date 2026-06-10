@@ -1,5 +1,6 @@
 package com.uade.tpo.wepadel.backend.facade;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import com.uade.tpo.wepadel.persistencia.service.CarritoService;
 import com.uade.tpo.wepadel.persistencia.service.CatalogoService;
 import com.uade.tpo.wepadel.persistencia.service.ConfiguracionService;
 import com.uade.tpo.wepadel.persistencia.service.PedidoService;
+import com.uade.tpo.wepadel.persistencia.service.ProductoService;
 import com.uade.tpo.wepadel.persistencia.service.PuntosService;
 import com.uade.tpo.wepadel.persistencia.service.UsuarioService;
 
@@ -44,6 +46,7 @@ public class TiendaFacade {
     private final PedidoService pedidoService;
     private final PuntosService puntosService;
     private final ConfiguracionService configuracionService;
+    private final ProductoService productoService;
 
     @Transactional
     public Usuario registrarUsuario(String nombreApellido, String mail, String password, RolEnum rol) {
@@ -74,6 +77,18 @@ public class TiendaFacade {
         carritoService.sincronizarCarrito(cliente);
     }
 
+    @Transactional
+    public void modificarCantidadCarrito(Cliente cliente, Producto producto, int cantidad) {
+        cliente.getCarrito().modificarCantidad(producto, cantidad);
+        carritoService.sincronizarCarrito(cliente);
+    }
+
+    @Transactional
+    public void eliminarDelCarrito(Cliente cliente, Producto producto) {
+        cliente.getCarrito().eliminarItem(producto);
+        carritoService.sincronizarCarrito(cliente);
+    }
+
     @Transactional(readOnly = true)
     public int consultarSaldoPuntos(Cliente cliente) {
         return cliente.getSaldoPuntos();
@@ -87,8 +102,13 @@ public class TiendaFacade {
     }
 
     @Transactional
-    public void cancelarPedido(Pedido pedido) {
-        Cliente cliente = pedido.getCliente();
+    public void cancelarPedido(Pedido pedidoReferencia) {
+        Cliente cliente = usuarioService.obtenerCliente(pedidoReferencia.getCliente().getId());
+        pedidoService.cargarHistorialEnCliente(cliente);
+        Pedido pedido = cliente.getHistorialPedidos().stream()
+                .filter(p -> p.getId().equals(pedidoReferencia.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado para el cliente"));
         cliente.cancelarPedido(pedido);
         pedidoService.sincronizarCancelacion(pedido, cliente);
     }
@@ -118,6 +138,11 @@ public class TiendaFacade {
     }
 
     @Transactional(readOnly = true)
+    public List<Pedido> getPedidosCliente(Cliente cliente) {
+        return pedidoService.listarPedidosPorCliente(cliente.getId());
+    }
+
+    @Transactional(readOnly = true)
     public List<Usuario> getUsuarios() {
         return usuarioService.listarUsuarios();
     }
@@ -139,6 +164,35 @@ public class TiendaFacade {
     @Transactional
     public Categoria crearCategoria(Administrador admin, String nombre, Categoria padre) {
         return catalogoService.crearCategoria(nombre, padre);
+    }
+
+    @Transactional
+    public void actualizarStock(Administrador admin, Producto producto, int cantidad) {
+        admin.actualizarStock(producto, cantidad);
+        productoService.sincronizarStock(producto);
+    }
+
+    @Transactional
+    public void cambiarHabilitadoProducto(Administrador admin, Producto producto, boolean habilitado) {
+        producto.setHabilitado(habilitado);
+        productoService.sincronizarHabilitado(producto);
+    }
+
+    @Transactional
+    public void guardarConfiguracion(BigDecimal costoEnvio, int conversionPuntos, BigDecimal pesosPorPuntoGenerado,
+                                       String canalNotificacionDefault) {
+        configuracionService.guardarConfiguracion(costoEnvio, conversionPuntos, pesosPorPuntoGenerado,
+                canalNotificacionDefault);
+    }
+
+    @Transactional(readOnly = true)
+    public Categoria refrescarCatalogo() {
+        return catalogoService.reconstruirCatalogo();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> listarTodosLosProductos() {
+        return catalogoService.listarTodosLosProductos();
     }
 
     @Transactional

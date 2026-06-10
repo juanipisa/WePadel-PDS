@@ -101,4 +101,21 @@ public class PedidoService {
         return domainMapper.toDomainPedido(pedidoEntity, cliente, catalogoService.getProductosPorId());
     }
 
+    @Transactional(readOnly = true)
+    public List<Pedido> listarPedidosPorCliente(Long clienteId) {
+        List<Pedido> pedidos = new ArrayList<>();
+        var productosPorId = catalogoService.getProductosPorId();
+        Cliente cliente = new Cliente(clienteId, "", "", "");
+
+        for (com.uade.tpo.wepadel.persistencia.entity.Pedido pedidoEntity : pedidoRepository.findByClienteId(clienteId)) {
+            pedidos.add(domainMapper.toDomainPedido(pedidoEntity, cliente, productosPorId));
+        }
+        return pedidos;
+    }
+
+    @Transactional(readOnly = true)
+    public void cargarHistorialEnCliente(Cliente cliente) {
+        cliente.cargarHistorialPedidos(listarPedidosPorCliente(cliente.getId()));
+    }
+
 }
