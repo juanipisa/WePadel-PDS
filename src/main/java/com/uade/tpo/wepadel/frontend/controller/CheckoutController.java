@@ -7,10 +7,7 @@ import java.util.function.Consumer;
 import javax.swing.SpinnerNumberModel;
 
 import com.uade.tpo.wepadel.backend.domain.pago.MetodoDePago;
-import com.uade.tpo.wepadel.backend.domain.pago.PagoTarjetaCredito;
-import com.uade.tpo.wepadel.backend.domain.pago.PagoTransferencia;
-import com.uade.tpo.wepadel.backend.domain.pago.adapter.MercadoPagoAdapter;
-import com.uade.tpo.wepadel.backend.domain.pago.adapter.MercadoPagoSdkStub;
+import com.uade.tpo.wepadel.backend.domain.pago.MetodoDePagoFactory;
 import com.uade.tpo.wepadel.backend.domain.pedido.Pedido;
 import com.uade.tpo.wepadel.frontend.app.AppContext;
 import com.uade.tpo.wepadel.frontend.util.Dialogs;
@@ -81,14 +78,14 @@ public class CheckoutController {
     private MetodoDePago construirMetodoPago(CheckoutDialog dialog) {
         String metodo = (String) dialog.getMetodoPagoCombo().getSelectedItem();
         if ("Tarjeta".equals(metodo)) {
-            return new PagoTarjetaCredito(
+            return MetodoDePagoFactory.crearTarjeta(
                     dialog.getTarjetaNumero().getText().trim(),
                     dialog.getTarjetaTitular().getText().trim(),
                     new String(dialog.getTarjetaCvv().getPassword()),
                     dialog.getTarjetaVencimiento().getText().trim());
         }
         if ("Transferencia".equals(metodo)) {
-            return new PagoTransferencia(
+            return MetodoDePagoFactory.crearTransferencia(
                     dialog.getTransferenciaCbu().getText().trim(),
                     dialog.getTransferenciaBanco().getText().trim());
         }
@@ -98,7 +95,7 @@ public class CheckoutController {
                 Dialogs.error(dialog, "Ingrese alias de Mercado Pago");
                 return null;
             }
-            return new MercadoPagoAdapter(new MercadoPagoSdkStub(), alias);
+            return MetodoDePagoFactory.crearMercadoPago(alias);
         }
         Dialogs.error(dialog, "Seleccione un metodo de pago");
         return null;

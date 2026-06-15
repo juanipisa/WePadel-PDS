@@ -13,9 +13,8 @@ import com.uade.tpo.wepadel.backend.domain.notificacion.NotificadorEmail;
 import com.uade.tpo.wepadel.backend.domain.notificacion.NotificadorPush;
 import com.uade.tpo.wepadel.backend.domain.notificacion.NotificadorSMS;
 import com.uade.tpo.wepadel.backend.domain.pago.MetodoDePago;
-import com.uade.tpo.wepadel.backend.domain.pago.PagoMercadoPago;
-import com.uade.tpo.wepadel.backend.domain.pago.PagoTarjetaCredito;
-import com.uade.tpo.wepadel.backend.domain.pago.PagoTransferencia;
+import com.uade.tpo.wepadel.backend.domain.pago.MetodoDePagoFactory;
+import com.uade.tpo.wepadel.backend.domain.pago.TipoMetodoPago;
 import com.uade.tpo.wepadel.backend.domain.pedido.Pedido;
 import com.uade.tpo.wepadel.backend.domain.pedido.estado.EstadoPedidoFactory;
 import com.uade.tpo.wepadel.backend.domain.usuario.Administrador;
@@ -119,16 +118,8 @@ public class DomainMapper {
     }
 
     public TipoPagoEnum toTipoPago(MetodoDePago metodoPago) {
-        if (metodoPago instanceof PagoTarjetaCredito) {
-            return TipoPagoEnum.TARJETA;
-        }
-        if (metodoPago instanceof PagoTransferencia) {
-            return TipoPagoEnum.TRANSFERENCIA;
-        }
-        if (metodoPago instanceof PagoMercadoPago) {
-            return TipoPagoEnum.MERCADO_PAGO;
-        }
-        throw new IllegalArgumentException("Metodo de pago no soportado: " + metodoPago.getClass().getSimpleName());
+        TipoMetodoPago tipo = MetodoDePagoFactory.resolverTipo(metodoPago);
+        return TipoPagoEnum.valueOf(tipo.name());
     }
 
     public com.uade.tpo.wepadel.persistencia.entity.Pedido toEntityPedido(
@@ -183,7 +174,7 @@ public class DomainMapper {
                 entity.getId(),
                 cliente,
                 entity.getTotal(),
-                reconstruirMetodoPago(entity.getTipoPago()),
+                MetodoDePagoFactory.reconstruirStub(TipoMetodoPago.valueOf(entity.getTipoPago().name())),
                 entity.isUsaPuntos(),
                 entity.getPuntosUsados(),
                 entity.getPuntosGenerados(),
@@ -201,14 +192,6 @@ public class DomainMapper {
                 item.getPrecioUnitarioHistorico()
         );
         return new com.uade.tpo.wepadel.backend.domain.pedido.ItemPedido(productoStub, item.getCantidad());
-    }
-
-    private MetodoDePago reconstruirMetodoPago(TipoPagoEnum tipoPago) {
-        return switch (tipoPago) {
-            case TARJETA -> new PagoTarjetaCredito("0000000000000000", "N/A", "000", "01/99");
-            case TRANSFERENCIA -> new PagoTransferencia("0000000000000000000000", "N/A");
-            case MERCADO_PAGO -> new PagoMercadoPago("mp-ref");
-        };
     }
 
     private static final class ProductoStub extends Producto {
