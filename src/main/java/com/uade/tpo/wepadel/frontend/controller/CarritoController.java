@@ -79,8 +79,14 @@ public class CarritoController {
         checkoutController.preparar(checkoutDialog);
         checkoutController.bind(checkoutDialog, pedido -> {
             carritoDialog.dispose();
-            Dialogs.info(mainFrame, "Compra confirmada. Pedido #" + pedido.getId()
-                    + " - Cod: " + pedido.getCodigoTransaccion());
+            String mensaje = "Compra confirmada. Pedido #" + pedido.getId()
+                    + " - Total pagado: $" + pedido.getTotal();
+            if (pedido.isUsaPuntos() && pedido.getPuntosUsados() > 0) {
+                mensaje += " (descuento: $" + pedido.getDescuentoPorPuntos()
+                        + ", " + pedido.getPuntosUsados() + " pts usados)";
+            }
+            mensaje += " - Cod: " + pedido.getCodigoTransaccion();
+            Dialogs.info(mainFrame, mensaje);
         });
         checkoutDialog.setVisible(true);
     }

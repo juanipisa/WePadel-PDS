@@ -29,7 +29,7 @@ public class MisPedidosDialog extends JDialog {
         south.add(refrescarButton);
         south.add(cerrarButton);
         add(south, BorderLayout.SOUTH);
-        setSize(600, 350);
+        setSize(780, 350);
         setLocationRelativeTo(owner);
     }
 

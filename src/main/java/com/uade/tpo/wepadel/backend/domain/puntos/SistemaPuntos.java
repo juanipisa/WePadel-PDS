@@ -55,6 +55,18 @@ public class SistemaPuntos {
         return puntosUsados > 0 && cantidad >= puntosUsados;
     }
 
+    /** Maximo canjeable segun saldo y monto total de la compra (subtotal + envio). */
+    public int calcularMaxCanjeables(BigDecimal totalCompra) {
+        if (cantidad <= 0 || totalCompra.compareTo(BigDecimal.ZERO) <= 0) {
+            return 0;
+        }
+        int maxPorTotal = totalCompra
+                .multiply(BigDecimal.valueOf(conversion))
+                .setScale(0, RoundingMode.DOWN)
+                .intValue();
+        return Math.min(cantidad, maxPorTotal);
+    }
+
     public Long getId() {
         return id;
     }

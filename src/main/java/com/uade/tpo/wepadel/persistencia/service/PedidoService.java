@@ -105,7 +105,9 @@ public class PedidoService {
     public List<Pedido> listarPedidosPorCliente(Long clienteId) {
         List<Pedido> pedidos = new ArrayList<>();
         var productosPorId = catalogoService.getProductosPorId();
-        Cliente cliente = new Cliente(clienteId, "", "", "");
+        Usuario clienteEntity = usuarioRepository.findById(clienteId)
+                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado: " + clienteId));
+        Cliente cliente = (Cliente) domainMapper.toDomainUsuarioBasico(clienteEntity);
 
         for (com.uade.tpo.wepadel.persistencia.entity.Pedido pedidoEntity : pedidoRepository.findByClienteId(clienteId)) {
             pedidos.add(domainMapper.toDomainPedido(pedidoEntity, cliente, productosPorId));

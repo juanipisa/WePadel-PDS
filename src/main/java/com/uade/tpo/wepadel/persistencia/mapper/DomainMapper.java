@@ -181,8 +181,19 @@ public class DomainMapper {
                 entity.getDescuentoPorPuntos(),
                 items
         );
+        pedido.setFechaCompra(entity.getFechaCompra());
+        pedido.setCodigoTransaccion(entity.getCodigoTransaccion());
         pedido.cambiarEstado(EstadoPedidoFactory.fromNombre(entity.getEstado().name()));
+        adjuntarNotificadorSiCorresponde(pedido, cliente, entity.getCliente().getCanalNotificacion());
         return pedido;
+    }
+
+    /** Restaura el Observer al reconstruir el pedido desde BD (canal persistido en usuario). */
+    private void adjuntarNotificadorSiCorresponde(Pedido pedido, Cliente cliente, CanalNotificacionEnum canal) {
+        Notificador notificador = toNotificador(canal, cliente);
+        if (notificador != null) {
+            pedido.agregarObservador(notificador);
+        }
     }
 
     private com.uade.tpo.wepadel.backend.domain.pedido.ItemPedido crearItemPedidoDesdeSnapshot(ItemPedido item) {

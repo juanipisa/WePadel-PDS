@@ -103,6 +103,10 @@ public class Pedido {
         return fechaCompra;
     }
 
+    public void setFechaCompra(LocalDateTime fechaCompra) {
+        this.fechaCompra = fechaCompra;
+    }
+
     public boolean isUsaPuntos() {
         return usaPuntos;
     }

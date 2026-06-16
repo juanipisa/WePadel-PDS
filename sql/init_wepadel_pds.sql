@@ -3,22 +3,15 @@
 -- =============================================================================
 -- Requisitos: MySQL 8+, Java 17, Maven.
 --
--- Pasos para clonar el repo y levantar desde cero:
+-- Uso normal (recomendado):
+--   1. MySQL Workbench: conectar a localhost:3306 (usuario root).
+--   2. Configurar BD_PASSWORD con la contraseña de root (launch.json o variable de entorno).
+--   3. Ejecutar la app (Run > WePadel). Hibernate crea tablas y DemoDataSeeder carga datos si la base esta vacia.
 --
---   1. Crear la base de datos (este script también lo hace al inicio):
---      mysql -u root -p < sql/init_wepadel_pds.sql
---      (Si las tablas aún no existen, el script fallará en el DELETE: es normal.)
---
---   2. Primera ejecución de Spring Boot (Hibernate crea tablas con ddl-auto=update):
---      export BD_PASSWORD=          # contraseña MySQL si aplica
---      mvn spring-boot:run
---      Detener con Ctrl+C cuando la app arranque.
---
---   3. Cargar datos de demostración (ejecutar de nuevo):
---      mysql -u root -p wepadel_pds < sql/init_wepadel_pds.sql
---
---   4. Ejecutar la aplicación:
---      mvn spring-boot:run
+-- Este script sirve para REINICIAR datos demo manualmente en Workbench:
+--   1. Ejecutar la app al menos una vez (para que existan las tablas).
+--   2. Abrir este archivo en Workbench y ejecutarlo completo (o: mysql -u root -p < sql/init_wepadel_pds.sql).
+--   (Si las tablas aun no existen, los DELETE fallan: es normal; ejecute la app primero.)
 --
 -- Usuarios demo (contraseña en texto plano, solo para desarrollo):
 --   Admin:   admin@wepadel.com  / admin123

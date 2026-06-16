@@ -19,6 +19,7 @@ public class CheckoutDialog extends JDialog {
 
     private final JLabel subtotalLabel = new JLabel();
     private final JLabel envioLabel = new JLabel();
+    private final JLabel puntosDisponiblesLabel = new JLabel();
     private final JLabel descuentoLabel = new JLabel();
     private final JLabel totalLabel = new JLabel();
     private final JSpinner puntosSpinner = new JSpinner();
@@ -41,11 +42,13 @@ public class CheckoutDialog extends JDialog {
         super(owner, "Checkout - Pago y confirmacion", ModalityType.APPLICATION_MODAL);
         setLayout(new BorderLayout());
 
-        JPanel resumen = new JPanel(new GridLayout(5, 2, 5, 5));
+        JPanel resumen = new JPanel(new GridLayout(6, 2, 5, 5));
         resumen.add(new JLabel("Subtotal:"));
         resumen.add(subtotalLabel);
         resumen.add(new JLabel("Envio:"));
         resumen.add(envioLabel);
+        resumen.add(new JLabel("Puntos disponibles:"));
+        resumen.add(puntosDisponiblesLabel);
         resumen.add(new JLabel("Puntos a canjear:"));
         resumen.add(puntosSpinner);
         resumen.add(new JLabel("Descuento puntos:"));
@@ -105,6 +108,10 @@ public class CheckoutDialog extends JDialog {
 
     public JLabel getEnvioLabel() {
         return envioLabel;
+    }
+
+    public JLabel getPuntosDisponiblesLabel() {
+        return puntosDisponiblesLabel;
     }
 
     public JLabel getDescuentoLabel() {

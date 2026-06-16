@@ -67,16 +67,20 @@ public class Cliente extends Usuario {
 
         ConfiguracionSistema config = ConfiguracionSistema.getInstancia();
         BigDecimal subtotal = carrito.calcularTotal();
+        BigDecimal totalAntesDescuento = subtotal.add(config.getCostoEnvio());
         BigDecimal descuento = BigDecimal.ZERO;
 
         if (puntosUsados > 0) {
             if (!sistemaPuntos.puedeCanjear(puntosUsados)) {
                 throw new IllegalStateException("Puntos insuficientes para canjear");
             }
+            int maxCanjeables = sistemaPuntos.calcularMaxCanjeables(totalAntesDescuento);
+            if (puntosUsados > maxCanjeables) {
+                throw new IllegalStateException(
+                        "No puede canjear mas de " + maxCanjeables + " puntos en esta compra");
+            }
             descuento = sistemaPuntos.calcularDescuento(puntosUsados);
         }
-
-        BigDecimal totalAntesDescuento = subtotal.add(config.getCostoEnvio());
         if (descuento.compareTo(totalAntesDescuento) > 0) {
             descuento = totalAntesDescuento;
             puntosUsados = descuento.multiply(BigDecimal.valueOf(sistemaPuntos.getConversion()))

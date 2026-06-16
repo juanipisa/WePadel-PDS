@@ -3,14 +3,14 @@
     "configurations": [
         {
             "type": "java",
-            "name": "WePadel Main",
+            "name": "WePadel",
             "request": "launch",
-            "mainClass": "com.uade.tpo.wepadel.Main",
-            "classPaths": [
-                "${workspaceFolder}/target/classes"
-            ],
-            "modulePaths": [],
-            "preLaunchTask": "compile-wePadel"
+            "mainClass": "com.uade.tpo.wepadel.WePadelApplication",
+            "projectName": "wepadel-pds",
+            "vmArgs": "-Djava.awt.headless=false",
+            "env": {
+                "BD_PASSWORD": ""
+            }
         }
     ]
 }
